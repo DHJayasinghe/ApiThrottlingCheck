@@ -7,6 +7,7 @@ var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
 
 var startTimeWatch = System.Diagnostics.Stopwatch.StartNew();
 var minimumResponseTimeInMilliseconds = 10000;
+var targetServiceEndpoint = "TARGET_SERVICE_URL_COMES_HERE";
 
 async Task<long> SendRequestAsync(string id)
 {
@@ -18,7 +19,7 @@ async Task<long> SendRequestAsync(string id)
     try
     {
         using var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://ebill.sydneywater.com.au/drsclient-srv/document/U2WOHCCXUZTUQD4EHSUWXH5U6XVE2AACCNFCC7GP4EEOIGEJVX5GBVSRKULJXLDI4RL4CTQC2WH3BC5LR7QJ2XLMZUMHE2E366FJRKI=/7844"), tokenSource.Token);
+        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, targetServiceEndpoint), tokenSource.Token);
         watch.Stop();
         var statusText = response.IsSuccessStatusCode ? "Success" : "Failed";
         if (!response.IsSuccessStatusCode)
@@ -46,8 +47,8 @@ async Task<long> SendRequestAsync(string id)
     return watch.ElapsedMilliseconds;
 }
 
-//List<int> batchSizes = new() { 5, 10, 15, 20, 25, 30, 5, 10, 15, 20, 25, 30 };
-List<int> batchSizes = new() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
+List<int> batchSizes = new() { 5, 10, 15, 20, 25, 30, 5, 10, 15, 20, 25, 30 };
+// List<int> batchSizes = new() { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };
 foreach (var d in batchSizes.Select((value, index) => new { value, index }))
 {
     await RunTest(httpClientFactory, d.index, d.value, 10);
@@ -61,8 +62,6 @@ Console.ReadLine();
 async Task RunTest(IHttpClientFactory? httpClientFactory, int id, int batchSize = 5, int iterations = 5)
 {
     //Console.WriteLine("..... Test #{0} started .....", id);
-    //int batchSize = 30;
-    //int iterations = 5;
     double totalAverageResponse = 0;
     foreach (var iteration in Enumerable.Range(1, iterations))
     {
